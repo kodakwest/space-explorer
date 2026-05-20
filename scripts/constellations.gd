@@ -52,7 +52,8 @@ func _process(delta: float) -> void:
 	current_constellation_name = nearest_name
 
 func _build_constellation_data() -> void:
-	_constellations = [
+	_constellations.clear()
+	var constellation_data: Array[Dictionary] = [
 		_constellation("Orion", 0, 230.0, [Vector3(-18, 10, 0), Vector3(-8, -2, 7), Vector3(0, -6, 0), Vector3(10, -4, -6), Vector3(20, 12, 1), Vector3(-22, -24, -4), Vector3(22, -25, 5)], [[0, 1], [1, 2], [2, 3], [3, 4], [1, 5], [3, 6]]),
 		_constellation("Ursa Major", 1, 360.0, [Vector3(-34, 4, 0), Vector3(-18, 10, 4), Vector3(-2, 7, -2), Vector3(12, 13, 3), Vector3(28, 18, -6), Vector3(44, 10, 4), Vector3(56, -5, -2)], [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]]),
 		_constellation("Cassiopeia", 2, 310.0, [Vector3(-30, 5, -3), Vector3(-16, 18, 5), Vector3(0, 3, -2), Vector3(16, 18, 4), Vector3(32, 6, 0)], [[0, 1], [1, 2], [2, 3], [3, 4]]),
@@ -62,6 +63,7 @@ func _build_constellation_data() -> void:
 		_constellation("Lyra", 0, 790.0, [Vector3(-18, 18, 1), Vector3(0, 28, -3), Vector3(18, 12, 4), Vector3(12, -12, -2), Vector3(-14, -16, 3), Vector3(0, 0, 0)], [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0], [5, 1]]),
 		_constellation("Taurus", 1, 880.0, [Vector3(-38, 8, -3), Vector3(-18, 2, 2), Vector3(0, 0, 0), Vector3(18, 4, -4), Vector3(38, 15, 5), Vector3(10, -20, 1), Vector3(-8, -18, -2)], [[0, 1], [1, 2], [2, 3], [3, 4], [2, 5], [2, 6]])
 	]
+	_constellations.assign(constellation_data)
 
 func _constellation(title: String, arm_index: int, radius: float, points: Array, links: Array) -> Dictionary:
 	var angle: float = TAU * float(arm_index) / 3.0 + radius * 0.0105

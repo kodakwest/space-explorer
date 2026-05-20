@@ -26,7 +26,7 @@ var nearest_star_name: String = ""
 var nearest_star_distance: float = INF
 var bookmark_count: int = 0
 
-var _catalog: Resource = preload("res://scripts/star_catalog.gd").new()
+var _catalog: StarCatalog = StarCatalog.new()
 var _catalog_stars: Array[Dictionary] = []
 var _star_positions: Array[Vector3] = []
 var _labels: Array[Label3D] = []
@@ -96,15 +96,15 @@ func _generate_background_galaxy() -> void:
 	multimesh.instance_count = star_count
 
 	for i in star_count:
-		var position: Vector3 = _galaxy_position()
-		var distance_ratio: float = clampf(Vector2(position.x, position.z).length() / field_radius, 0.0, 1.0)
+		var star_pos: Vector3 = _galaxy_position()
+		var distance_ratio: float = clampf(Vector2(star_pos.x, star_pos.z).length() / field_radius, 0.0, 1.0)
 		var magnitude: float = pow(randf(), 2.35)
 		var size: float = lerpf(min_star_size, max_star_size, magnitude)
 		if distance_ratio < 0.16:
 			size *= randf_range(1.15, 1.75)
 
-		var basis: Basis = Basis().scaled(Vector3.ONE * size)
-		multimesh.set_instance_transform(i, Transform3D(basis, position))
+		var star_basis: Basis = Basis().scaled(Vector3.ONE * size)
+		multimesh.set_instance_transform(i, Transform3D(star_basis, star_pos))
 		multimesh.set_instance_color(i, _background_star_color(distance_ratio, magnitude))
 		multimesh.set_instance_custom_data(i, Color(randf() * TAU, randf_range(0.35, 1.25), randf_range(0.045, 0.14), magnitude))
 
@@ -136,22 +136,22 @@ func _create_catalog_stars() -> void:
 
 	for i in _catalog_stars.size():
 		var star: Dictionary = _catalog_stars[i]
-		var position: Vector3 = Vector3(
+		var star_pos: Vector3 = Vector3(
 			float(star.get("x", 0.0)),
 			float(star.get("z", 0.0)),
 			-float(star.get("y", 0.0))
 		) * catalog_star_scale
-		_star_positions.append(position)
+		_star_positions.append(star_pos)
 
 		var mag: float = float(star.get("mag", 6.0))
 		var size: float = clampf(_catalog.star_size_from_magnitude(mag, 0.62), 0.18, 2.2)
-		var basis: Basis = Basis().scaled(Vector3.ONE * size)
-		multimesh.set_instance_transform(i, Transform3D(basis, position))
+		var star_basis: Basis = Basis().scaled(Vector3.ONE * size)
+		multimesh.set_instance_transform(i, Transform3D(star_basis, star_pos))
 
 		var color: Color = _catalog.star_to_color(float(star.get("ci", 0.0)))
 		multimesh.set_instance_color(i, Color(color.r, color.g, color.b, 0.98))
 		multimesh.set_instance_custom_data(i, Color(randf() * TAU, randf_range(0.55, 1.35), randf_range(0.035, 0.12), clampf(1.0 - ((mag + 1.5) / 7.5), 0.2, 1.0)))
-		_create_star_label(i, star, position, color)
+		_create_star_label(i, star, star_pos, color)
 
 	var stars: MultiMeshInstance3D = MultiMeshInstance3D.new()
 	stars.name = "HygBrightStars"
@@ -213,7 +213,8 @@ func _select_clicked_star(screen_position: Vector2) -> void:
 func _nearest_star_indices(radius: float, limit: int) -> Array[int]:
 	var result: Array[Dictionary] = []
 	if not is_instance_valid(_ship):
-		return []
+		var empty_result: Array[int] = []
+		return empty_result
 
 	for i in _star_positions.size():
 		var distance: float = _distance_to_ship(i)
@@ -240,31 +241,33 @@ func _on_bookmark_count_changed(count: int) -> void:
 
 func _galaxy_position() -> Vector3:
 	if randf() < 0.22:
-		var radius: float = pow(randf(), 2.4) * core_radius
+		var core_rad: float = pow(randf(), 2.4) * core_radius
 		var angle: float = randf() * TAU
-		return Vector3(cos(angle) * radius, randfn(0.0, disk_thickness * 0.25), sin(angle) * radius)
+		return Vector3(cos(angle) * core_rad, randfn(0.0, disk_thickness * 0.25), sin(angle) * core_rad)
 
-	var radius: float = lerpf(core_radius * 0.45, field_radius, pow(randf(), 0.72))
+	var spiral_radius: float = lerpf(core_radius * 0.45, field_radius, pow(randf(), 0.72))
 	var arm_index: int = randi() % ARM_COUNT
 	var arm_offset: float = TAU * float(arm_index) / float(ARM_COUNT)
-	var spiral_twist: float = radius * 0.0105
-	var angle: float = arm_offset + spiral_twist + randfn(0.0, arm_spread / maxf(radius, 1.0))
-	var scatter: float = randfn(0.0, arm_spread * lerpf(0.45, 1.85, radius / field_radius))
-	var disk_y: float = randfn(0.0, disk_thickness * lerpf(0.2, 1.0, radius / field_radius))
-	var final_radius: float = clampf(radius + scatter, core_radius * 0.25, field_radius)
+	var spiral_twist: float = spiral_radius * 0.0105
+	var angle: float = arm_offset + spiral_twist + randfn(0.0, arm_spread / maxf(spiral_radius, 1.0))
+	var scatter: float = randfn(0.0, arm_spread * lerpf(0.45, 1.85, spiral_radius / field_radius))
+	var disk_y: float = randfn(0.0, disk_thickness * lerpf(0.2, 1.0, spiral_radius / field_radius))
+	var final_radius: float = clampf(spiral_radius + scatter, core_radius * 0.25, field_radius)
 
 	return Vector3(cos(angle) * final_radius, disk_y, sin(angle) * final_radius)
 
 func _background_star_color(distance_ratio: float, magnitude: float) -> Color:
+	var clamped_distance_ratio: float = clampf(distance_ratio, 0.0, 1.0)
+	var clamped_magnitude: float = clampf(magnitude, 0.0, 1.0)
 	var base: Color
-	if distance_ratio < 0.17:
+	if clamped_distance_ratio < 0.17:
 		base = STAR_WARM.lerp(CORE_GLOW, randf_range(0.25, 0.85))
-	elif randf() < lerpf(0.55, 0.82, distance_ratio):
+	elif randf() < lerpf(0.55, 0.82, clamped_distance_ratio):
 		base = STAR_COOL.lerp(STAR_BASE, randf_range(0.15, 0.65))
 	else:
 		base = STAR_WARM.lerp(STAR_BASE, randf_range(0.1, 0.42))
 
-	var alpha: float = lerpf(0.28, 0.58, magnitude)
+	var alpha: float = lerpf(0.28, 0.58, clamped_magnitude)
 	return Color(base.r, base.g, base.b, alpha)
 
 func _create_twinkle_shader() -> Shader:

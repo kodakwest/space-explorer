@@ -1,11 +1,30 @@
 extends Resource
+class_name StarCatalog
 
 ## Bright Star Catalog — loads real star data from HYG Database
 ## Provides lookup by name, constellation, magnitude range
 
+const CONSTELLATION_ALIASES: Dictionary = {
+	"andromeda": "And",
+	"aquila": "Aql",
+	"bootes": "Boo",
+	"canis major": "CMa",
+	"canis minor": "CMi",
+	"cassiopeia": "Cas",
+	"centaurus": "Cen",
+	"cygnus": "Cyg",
+	"leo": "Leo",
+	"lyra": "Lyr",
+	"orion": "Ori",
+	"scorpius": "Sco",
+	"taurus": "Tau",
+	"ursa major": "UMa",
+	"ursa minor": "UMi",
+	"virgo": "Vir",
+}
+
 var _stars: Array[Dictionary] = []
 var _stars_by_name: Dictionary = {}
-var _stars_by_constellation: Dictionary = {}
 
 func _init() -> void:
 	_load_catalog()
@@ -20,15 +39,25 @@ func _load_catalog() -> void:
 	var json: JSON = JSON.new()
 	var parse: Error = json.parse(text)
 	if parse != OK:
-		push_error("Failed to parse star catalog: ", parse)
+		push_error("Failed to parse star catalog: %s" % error_string(parse))
 		return
 	
-	_stars = json.data as Array
-	
+	var parsed_data: Variant = json.data
+	if not parsed_data is Array:
+		push_error("Star catalog root must be an array: res://data/bright_stars.json")
+		return
+	var parsed_array: Array = parsed_data as Array
+
+	_stars.clear()
+	_stars_by_name.clear()
+	for entry: Variant in parsed_array:
+		if entry is Dictionary:
+			_stars.append(entry as Dictionary)
+
 	for star in _stars:
-		var name: String = star.get("name", "")
-		if not name.is_empty():
-			_stars_by_name[name.to_lower()] = star
+		var star_name: String = star.get("name", "")
+		if not star_name.is_empty():
+			_stars_by_name[star_name.to_lower()] = star
 
 func get_star_count() -> int:
 	return _stars.size()
@@ -37,19 +66,24 @@ func get_star(name: String) -> Dictionary:
 	return _stars_by_name.get(name.to_lower().strip_edges(), {})
 
 func get_all_stars() -> Array[Dictionary]:
-	return _stars.duplicate()
+	var result: Array[Dictionary] = []
+	result.assign(_stars)
+	return result
 
 func get_brightest(count: int = 20) -> Array[Dictionary]:
-	var sorted: Array[Dictionary] = _stars.duplicate()
+	var sorted: Array[Dictionary] = []
+	sorted.assign(_stars)
 	sorted.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return float(a.get("mag", 99.0)) < float(b.get("mag", 99.0))
 	)
-	return sorted.slice(0, count)
+	var result: Array[Dictionary] = []
+	result.assign(sorted.slice(0, count))
+	return result
 
 func get_stars_by_magnitude(max_mag: float) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for star in _stars:
-		if star.get("mag", 99) <= max_mag:
+		if float(star.get("mag", 99.0)) <= max_mag:
 			result.append(star)
 	return result
 
@@ -57,11 +91,20 @@ func search_stars(query: String) -> Array[Dictionary]:
 	var q: String = query.to_lower().strip_edges()
 	var result: Array[Dictionary] = []
 	for star in _stars:
-		var name: String = star.get("name", "")
+		var star_name: String = star.get("name", "")
 		var bayer: String = star.get("bayer", "")
-		if q in name.to_lower() or q in bayer.to_lower():
+		if q in star_name.to_lower() or q in bayer.to_lower() or _bayer_matches_constellation_query(bayer, q):
 			result.append(star)
 	return result
+
+func _bayer_matches_constellation_query(bayer: String, query: String) -> bool:
+	if query.is_empty():
+		return false
+	var abbreviation: String = str(CONSTELLATION_ALIASES.get(query, ""))
+	if abbreviation.is_empty():
+		return false
+	var parts: PackedStringArray = bayer.split(" ", false)
+	return parts.size() > 0 and parts[-1].to_lower() == abbreviation.to_lower()
 
 func star_to_color(ci: float) -> Color:
 	# B-V color index to RGB color
@@ -89,7 +132,7 @@ func star_size_from_magnitude(mag: float, base_size: float = 1.0) -> float:
 
 func constellation_for_star(star_name: String) -> String:
 	# Uses Bayer designation (e.g. "α Orionis" -> Orion)
-	var bayer: String = get_star(star_name).get("bayer", "")
+	var bayer: String = str(get_star(star_name).get("bayer", ""))
 	if bayer.is_empty():
 		return ""
 	var parts: PackedStringArray = bayer.split(" ", true)

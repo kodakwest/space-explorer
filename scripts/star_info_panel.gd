@@ -18,7 +18,7 @@ const STAR_BASE: Color = Color("#d9dce6")
 @onready var _bookmark_button: Button = $Panel/BookmarkButton
 
 var _current_star: Dictionary = {}
-var _catalog: Resource = preload("res://scripts/star_catalog.gd").new()
+var _catalog: StarCatalog = StarCatalog.new()
 var _bookmarks: Array[String] = []
 
 func _ready() -> void:
@@ -41,14 +41,16 @@ func show_star_data(star: Dictionary) -> void:
 	visible = true
 
 func get_bookmarks() -> Array[String]:
-	return _bookmarks.duplicate()
+	var result: Array[String] = []
+	result.assign(_bookmarks)
+	return result
 
 func get_bookmark_count() -> int:
 	return _bookmarks.size()
 
 func _display_star(star: Dictionary) -> void:
-	var name: String = str(star.get("name", "Unknown"))
-	_name_label.text = name
+	var star_name: String = str(star.get("name", "Unknown"))
+	_name_label.text = star_name
 	_bayer_label.text = _format_bayer(str(star.get("bayer", "")))
 	_mag_label.text = "Magnitude: %.2f" % float(star.get("mag", 0.0))
 	_dist_label.text = "Distance: %.1f ly" % float(star.get("dist_ly", 0.0))
@@ -62,14 +64,14 @@ func _format_bayer(raw_bayer: String) -> String:
 	return "Designation: %s" % raw_bayer
 
 func _toggle_bookmark() -> void:
-	var name: String = str(_current_star.get("name", ""))
-	if name.is_empty():
+	var star_name: String = str(_current_star.get("name", ""))
+	if star_name.is_empty():
 		return
 
-	if name in _bookmarks:
-		_bookmarks.erase(name)
+	if star_name in _bookmarks:
+		_bookmarks.erase(star_name)
 	else:
-		_bookmarks.append(name)
+		_bookmarks.append(star_name)
 
 	_bookmarks.sort()
 	_save_bookmarks()
@@ -77,8 +79,8 @@ func _toggle_bookmark() -> void:
 	bookmark_count_changed.emit(_bookmarks.size())
 
 func _update_bookmark_button() -> void:
-	var name: String = str(_current_star.get("name", ""))
-	_bookmark_button.text = "✦ Bookmarked" if name in _bookmarks else "✦ Bookmark"
+	var star_name: String = str(_current_star.get("name", ""))
+	_bookmark_button.text = "✦ Bookmarked" if star_name in _bookmarks else "✦ Bookmark"
 
 func _hide() -> void:
 	visible = false
@@ -100,9 +102,9 @@ func _load_bookmarks() -> void:
 	var parsed: Variant = JSON.parse_string(file.get_as_text())
 	if parsed is Array:
 		for item in parsed:
-			var name: String = str(item)
-			if not name.is_empty() and not (name in _bookmarks):
-				_bookmarks.append(name)
+			var entry_name: String = str(item)
+			if not entry_name.is_empty() and not (entry_name in _bookmarks):
+				_bookmarks.append(entry_name)
 
 func _save_bookmarks() -> void:
 	var file: FileAccess = FileAccess.open(BOOKMARK_PATH, FileAccess.WRITE)
