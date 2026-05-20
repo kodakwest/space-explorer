@@ -1,13 +1,13 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://bygv41n74bo6s"]
 
-[ext_resource type="Script" path="res://scripts/star_info_panel.gd" id="1"]
+[ext_resource type="Script" uid="uid://ddn3pwteq8sj0" path="res://scripts/star_info_panel.gd" id="1"]
 
-[node name="StarInfoPanel" type="CanvasLayer"]
+[node name="StarInfoPanel" type="CanvasLayer" unique_id=1423701346]
 layer = 128
 script = ExtResource("1")
 
-[node name="Panel" type="Panel" parent="."]
-visible = true
+[node name="Panel" type="Panel" parent="." unique_id=41293663]
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -17,11 +17,9 @@ offset_top = -160.0
 offset_right = 200.0
 offset_bottom = 160.0
 
-[node name="NameLabel" type="Label" parent="Panel"]
-anchor_left = 0.0
-anchor_top = 0.0
+[node name="NameLabel" type="Label" parent="Panel" unique_id=2121358759]
+layout_mode = 0
 anchor_right = 1.0
-anchor_bottom = 0.0
 offset_left = 16.0
 offset_top = 16.0
 offset_right = -16.0
@@ -32,11 +30,9 @@ theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 28
 text = "Star Name"
 
-[node name="BayerLabel" type="Label" parent="Panel"]
-anchor_left = 0.0
-anchor_top = 0.0
+[node name="BayerLabel" type="Label" parent="Panel" unique_id=118828442]
+layout_mode = 0
 anchor_right = 1.0
-anchor_bottom = 0.0
 offset_left = 16.0
 offset_top = 48.0
 offset_right = -16.0
@@ -45,14 +41,16 @@ theme_override_colors/font_color = Color(0.36, 0.88, 0.9, 0.6)
 theme_override_font_sizes/font_size = 14
 text = "α Orionis"
 
-[node name="ColorRect" type="ColorRect" parent="Panel"]
+[node name="ColorRect" type="ColorRect" parent="Panel" unique_id=1920112644]
+layout_mode = 0
 offset_left = 16.0
 offset_top = 80.0
 offset_right = 40.0
 offset_bottom = 104.0
 color = Color(0.92, 0.78, 0.52, 1)
 
-[node name="MagLabel" type="Label" parent="Panel"]
+[node name="MagLabel" type="Label" parent="Panel" unique_id=1253536700]
+layout_mode = 0
 offset_left = 48.0
 offset_top = 80.0
 offset_right = 368.0
@@ -61,7 +59,8 @@ theme_override_colors/font_color = Color(0.82, 0.82, 0.82, 0.8)
 theme_override_font_sizes/font_size = 14
 text = "Magnitude: 0.5"
 
-[node name="DistLabel" type="Label" parent="Panel"]
+[node name="DistLabel" type="Label" parent="Panel" unique_id=906713575]
+layout_mode = 0
 offset_left = 48.0
 offset_top = 100.0
 offset_right = 368.0
@@ -70,7 +69,8 @@ theme_override_colors/font_color = Color(0.82, 0.82, 0.82, 0.8)
 theme_override_font_sizes/font_size = 14
 text = "Distance: 152.7 ly"
 
-[node name="SpectralLabel" type="Label" parent="Panel"]
+[node name="SpectralLabel" type="Label" parent="Panel" unique_id=1189732655]
+layout_mode = 0
 offset_left = 16.0
 offset_top = 120.0
 offset_right = 368.0
@@ -79,7 +79,8 @@ theme_override_colors/font_color = Color(0.82, 0.82, 0.82, 0.8)
 theme_override_font_sizes/font_size = 14
 text = "Type: M2Ib"
 
-[node name="CloseButton" type="Button" parent="Panel"]
+[node name="CloseButton" type="Button" parent="Panel" unique_id=1865319583]
+layout_mode = 0
 offset_left = 348.0
 offset_top = 8.0
 offset_right = 384.0
@@ -88,7 +89,8 @@ theme_override_colors/font_color = Color(0.36, 0.88, 0.9, 0.8)
 theme_override_font_sizes/font_size = 14
 text = "✕"
 
-[node name="BookmarkButton" type="Button" parent="Panel"]
+[node name="BookmarkButton" type="Button" parent="Panel" unique_id=668186517]
+layout_mode = 0
 offset_left = 16.0
 offset_top = 280.0
 offset_right = 180.0

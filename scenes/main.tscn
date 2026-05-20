@@ -39,7 +39,6 @@ light_energy = 0.35
 [node name="StarField" type="Node3D" parent="." unique_id=2125805848]
 script = ExtResource("2_stars")
 star_count = 2600
-field_radius = 1400.0
 
 [node name="PlayerShip" parent="." unique_id=1112451409 instance=ExtResource("1_ship")]
 

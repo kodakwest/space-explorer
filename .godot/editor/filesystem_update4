@@ -5,3 +5,6 @@ res://scripts/ship.gd
 res://scripts/constellations.gd
 res://scripts/nebula_sky.gd
 res://scripts/dust_particles.gd
+res://scripts/star_info_panel.gd
+res://scripts/star_catalog.gd
+res://scenes/star_info_panel.tscn
