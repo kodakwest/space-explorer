@@ -1,5 +1,7 @@
 extends Node3D
 
+signal constellation_discovered(name: String)
+
 @export var discovery_radius: float = 50.0
 @export var default_alpha: float = 0.11
 @export var discovered_alpha: float = 0.62
@@ -46,10 +48,35 @@ func _process(delta: float) -> void:
 		if target > 0.0 and not _discovered[i]:
 			_discovered[i] = true
 			discovered_count += 1
+			constellation_discovered.emit(str(_constellations[i]["name"]))
 
 		_update_constellation_visual(i)
 
 	current_constellation_name = nearest_name
+
+func get_nearest_undiscovered(from_position: Vector3) -> Dictionary:
+	var best: Dictionary = {}
+	var best_distance: float = INF
+	for i in _constellations.size():
+		if _discovered[i]:
+			continue
+		var center: Vector3 = _constellations[i]["center"] as Vector3
+		var distance: float = from_position.distance_to(center)
+		if distance < best_distance:
+			best_distance = distance
+			best = {
+				"name": str(_constellations[i]["name"]),
+				"center": center,
+				"distance": distance,
+			}
+	return best
+
+func get_nearest_constellation_distance(from_position: Vector3) -> float:
+	var best_distance: float = INF
+	for constellation in _constellations:
+		var center: Vector3 = constellation["center"] as Vector3
+		best_distance = minf(best_distance, from_position.distance_to(center))
+	return best_distance
 
 func _build_constellation_data() -> void:
 	_constellations.clear()

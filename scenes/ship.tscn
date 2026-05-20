@@ -14,9 +14,35 @@ emission_energy_multiplier = 0.18
 metallic = 0.55
 roughness = 0.22
 
-[sub_resource type="BoxMesh" id="BoxMesh_ship"]
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_ship"]
 material = SubResource("StandardMaterial3D_ship")
-size = Vector3(1.8, 0.6, 3.5)
+radius = 0.42
+height = 3.0
+radial_segments = 16
+rings = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_panel"]
+albedo_color = Color(0.85, 0.84, 0.78, 1)
+emission_enabled = true
+emission = Color(0.18, 0.2, 0.22, 1)
+emission_energy_multiplier = 0.08
+metallic = 0.25
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_panel"]
+material = SubResource("StandardMaterial3D_panel")
+size = Vector3(0.78, 0.08, 1.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wing"]
+material = SubResource("StandardMaterial3D_ship")
+size = Vector3(1.35, 0.08, 0.82)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_nose"]
+material = SubResource("StandardMaterial3D_ship")
+top_radius = 0.08
+bottom_radius = 0.42
+height = 0.74
+radial_segments = 16
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_engine"]
 shading_mode = 0
@@ -40,7 +66,24 @@ shape = SubResource("CapsuleShape3D_ship")
 [node name="VisualPivot" type="Node3D" parent="." unique_id=438870751]
 
 [node name="Body" type="MeshInstance3D" parent="VisualPivot" unique_id=1712065301]
-mesh = SubResource("BoxMesh_ship")
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+mesh = SubResource("CapsuleMesh_ship")
+
+[node name="Canopy" type="MeshInstance3D" parent="VisualPivot"]
+transform = Transform3D(1, 0, 0, 0, 0.92388, -0.382683, 0, 0.382683, 0.92388, 0, 0.32, -0.48)
+mesh = SubResource("BoxMesh_panel")
+
+[node name="LeftWing" type="MeshInstance3D" parent="VisualPivot"]
+transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, -0.74, -0.08, 0.52)
+mesh = SubResource("BoxMesh_wing")
+
+[node name="RightWing" type="MeshInstance3D" parent="VisualPivot"]
+transform = Transform3D(0.866025, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866025, 0.74, -0.08, 0.52)
+mesh = SubResource("BoxMesh_wing")
+
+[node name="Nose" type="MeshInstance3D" parent="VisualPivot"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, -1.82)
+mesh = SubResource("CylinderMesh_nose")
 
 [node name="EngineGlow" type="MeshInstance3D" parent="VisualPivot" unique_id=727848120]
 transform = Transform3D(1, 0, 0, 0, 0.65, 0, 0, 0, 1.35, 0, 0, 2.02)

@@ -41,13 +41,13 @@ script = ExtResource("2_stars")
 star_count = 2600
 
 [node name="PlayerShip" parent="." unique_id=1112451409 instance=ExtResource("1_ship")]
-camera_path = NodePath("../CameraBehind")
+camera_path = NodePath("CameraBehind")
 
-[node name="CameraBehind" type="Camera3D" parent="." groups=["flight_camera"]]
-transform = Transform3D(1, 0, 0, 0, 0.984808, 0.173648, 0, -0.173648, 0.984808, 0, 2.5, 9)
+[node name="CameraBehind" type="Camera3D" parent="PlayerShip" groups=["flight_camera"]]
+transform = Transform3D(1, 0, 0, 0, 0.984808, 0.173648, 0, -0.173648, 0.984808, 0, 4.5, 18)
 current = true
-fov = 70.0
-near = 0.05
+fov = 64.0
+near = 0.1
 far = 5000.0
 
 [node name="NebulaSky" type="MeshInstance3D" parent="." unique_id=1477161494]

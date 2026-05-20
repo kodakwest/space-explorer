@@ -48,6 +48,14 @@ func get_bookmarks() -> Array[String]:
 func get_bookmark_count() -> int:
 	return _bookmarks.size()
 
+func is_bookmarked(star_name: String) -> bool:
+	return star_name in _bookmarks
+
+func toggle_bookmark_for_star(star: Dictionary) -> bool:
+	_current_star = star
+	_toggle_bookmark()
+	return is_bookmarked(str(star.get("name", "")))
+
 func _display_star(star: Dictionary) -> void:
 	var star_name: String = str(star.get("name", "Unknown"))
 	_name_label.text = star_name
