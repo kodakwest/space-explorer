@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://bhlqui8uf6cq6"]
+
+[ext_resource type="PackedScene" uid="uid://b2qvcdanejhfu" path="res://scenes/ship.tscn" id="1_ship"]
+[ext_resource type="Script" uid="uid://cm2bheuib5sfy" path="res://scripts/star_field.gd" id="2_stars"]
+
+[sub_resource type="Environment" id="Environment_space"]
+background_mode = 1
+ambient_light_source = 3
+ambient_light_color = Color(0.02, 0.025, 0.04, 1)
+ambient_light_energy = 0.35
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.18
+glow_strength = 0.65
+
+[node name="Main" type="Node3D" unique_id=1628407325]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1048779615]
+environment = SubResource("Environment_space")
+
+[node name="DirectionalLight" type="DirectionalLight3D" parent="." unique_id=19926016]
+transform = Transform3D(0.764842, 0.322109, 0.5578, 0, 0.866025, -0.5, -0.644218, 0.382421, 0.662085, 0, 0, 0)
+light_energy = 0.55
+
+[node name="StarField" type="Node3D" parent="." unique_id=2125805848]
+script = ExtResource("2_stars")
+star_count = 900
+field_radius = 1200.0
+
+[node name="PlayerShip" parent="." unique_id=1112451409 instance=ExtResource("1_ship")]

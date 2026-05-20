@@ -1,0 +1,4 @@
+res://scripts/star_field.gd
+res://scenes/ship.tscn
+res://scenes/main.tscn
+res://scripts/ship.gd
