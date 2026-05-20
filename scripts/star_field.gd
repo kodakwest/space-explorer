@@ -1,48 +1,123 @@
 extends Node3D
 
-@export var star_count: int = 700
-@export var field_radius: float = 900.0
-@export var min_star_size: float = 0.05
-@export var max_star_size: float = 0.22
+@export_range(2000, 3000, 1) var star_count: int = 2600
+@export var field_radius: float = 1400.0
+@export var core_radius: float = 135.0
+@export var arm_spread: float = 34.0
+@export var disk_thickness: float = 70.0
+@export var min_star_size: float = 0.035
+@export var max_star_size: float = 0.34
+
+const ARM_COUNT: int = 3
+const STAR_WARM: Color = Color("#ebc884")
+const STAR_COOL: Color = Color("#82aad9")
+const STAR_BASE: Color = Color("#d9dce6")
+const CORE_GLOW: Color = Color("#ffdd80")
 
 func _ready() -> void:
-	_generate_stars()
+	_generate_galaxy()
 
-func _generate_stars() -> void:
-	var star_mesh := SphereMesh.new()
+func _generate_galaxy() -> void:
+	var star_mesh: SphereMesh = SphereMesh.new()
 	star_mesh.radius = 1.0
 	star_mesh.height = 2.0
+	star_mesh.radial_segments = 8
+	star_mesh.rings = 4
 
-	var colors: Array[Color] = [
-		Color(1.0, 1.0, 1.0),
-		Color(0.75, 0.86, 1.0),
-		Color(1.0, 0.92, 0.72),
-		Color(0.72, 1.0, 0.95)
-	]
+	var shader_material: ShaderMaterial = ShaderMaterial.new()
+	shader_material.shader = _create_twinkle_shader()
+
+	var multimesh: MultiMesh = MultiMesh.new()
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.use_colors = true
+	multimesh.use_custom_data = true
+	multimesh.mesh = star_mesh
+	multimesh.instance_count = star_count
 
 	for i in star_count:
-		var star := MeshInstance3D.new()
-		star.mesh = star_mesh
-		star.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		star.position = _random_position_in_shell(field_radius * 0.25, field_radius)
+		var position: Vector3 = _galaxy_position()
+		var distance_ratio: float = clampf(Vector2(position.x, position.z).length() / field_radius, 0.0, 1.0)
+		var magnitude: float = pow(randf(), 2.35)
+		var size: float = lerpf(min_star_size, max_star_size, magnitude)
+		if distance_ratio < 0.16:
+			size *= randf_range(1.15, 1.75)
 
-		var size := randf_range(min_star_size, max_star_size)
-		star.scale = Vector3.ONE * size
+		var basis: Basis = Basis().scaled(Vector3.ONE * size)
+		multimesh.set_instance_transform(i, Transform3D(basis, position))
+		multimesh.set_instance_color(i, _star_color(distance_ratio, magnitude))
 
-		var material := StandardMaterial3D.new()
-		var color: Color = colors.pick_random()
-		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		material.albedo_color = color
-		material.emission_enabled = true
-		material.emission = color
-		material.emission_energy_multiplier = randf_range(0.4, 1.3)
-		star.material_override = material
+		var phase: float = randf() * TAU
+		var speed: float = randf_range(0.35, 1.25)
+		var amplitude: float = randf_range(0.045, 0.14)
+		multimesh.set_instance_custom_data(i, Color(phase, speed, amplitude, magnitude))
 
-		add_child(star)
+	var stars: MultiMeshInstance3D = MultiMeshInstance3D.new()
+	stars.name = "GalaxyStars"
+	stars.multimesh = multimesh
+	stars.material_override = shader_material
+	stars.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(stars)
 
-func _random_position_in_shell(inner_radius: float, outer_radius: float) -> Vector3:
-	var direction := Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), randf_range(-1.0, 1.0))
-	while direction.length_squared() < 0.001:
-		direction = Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), randf_range(-1.0, 1.0))
+func _galaxy_position() -> Vector3:
+	if randf() < 0.22:
+		var radius: float = pow(randf(), 2.4) * core_radius
+		var angle: float = randf() * TAU
+		return Vector3(
+			cos(angle) * radius,
+			randfn(0.0, disk_thickness * 0.25),
+			sin(angle) * radius
+		)
 
-	return direction.normalized() * randf_range(inner_radius, outer_radius)
+	var radius: float = lerpf(core_radius * 0.45, field_radius, pow(randf(), 0.72))
+	var arm_index: int = randi() % ARM_COUNT
+	var arm_offset: float = TAU * float(arm_index) / float(ARM_COUNT)
+	var spiral_twist: float = radius * 0.0105
+	var angle: float = arm_offset + spiral_twist + randfn(0.0, arm_spread / maxf(radius, 1.0))
+	var scatter: float = randfn(0.0, arm_spread * lerpf(0.45, 1.85, radius / field_radius))
+	var disk_y: float = randfn(0.0, disk_thickness * lerpf(0.2, 1.0, radius / field_radius))
+	var final_radius: float = clampf(radius + scatter, core_radius * 0.25, field_radius)
+
+	return Vector3(
+		cos(angle) * final_radius,
+		disk_y,
+		sin(angle) * final_radius
+	)
+
+func _star_color(distance_ratio: float, magnitude: float) -> Color:
+	var base: Color
+	if distance_ratio < 0.17:
+		base = STAR_WARM.lerp(CORE_GLOW, randf_range(0.25, 0.85))
+	elif randf() < lerpf(0.55, 0.82, distance_ratio):
+		base = STAR_COOL.lerp(STAR_BASE, randf_range(0.15, 0.65))
+	else:
+		base = STAR_WARM.lerp(STAR_BASE, randf_range(0.1, 0.42))
+
+	var alpha: float = lerpf(0.62, 1.0, magnitude)
+	return Color(base.r, base.g, base.b, alpha)
+
+func _create_twinkle_shader() -> Shader:
+	var shader: Shader = Shader.new()
+shader.code = """
+shader_type spatial;
+render_mode unshaded, blend_add, depth_draw_never, cull_disabled;
+
+varying float star_phase;
+varying float star_speed;
+varying float star_amount;
+varying float star_magnitude;
+
+void vertex() {
+	star_phase = INSTANCE_CUSTOM.x;
+	star_speed = INSTANCE_CUSTOM.y;
+	star_amount = INSTANCE_CUSTOM.z;
+	star_magnitude = INSTANCE_CUSTOM.w;
+}
+
+void fragment() {
+	float twinkle = 1.0 + sin(TIME * star_speed + star_phase) * star_amount;
+	ALBEDO = COLOR.rgb * twinkle;
+	EMISSION = COLOR.rgb * (0.55 + star_magnitude * 1.65) * twinkle;
+	ALPHA = COLOR.a * (0.82 + sin(TIME * star_speed + star_phase) * star_amount);
+}
+"""
+	return shader

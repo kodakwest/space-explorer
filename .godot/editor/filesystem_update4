@@ -2,3 +2,6 @@ res://scripts/star_field.gd
 res://scenes/ship.tscn
 res://scenes/main.tscn
 res://scripts/ship.gd
+res://scripts/constellations.gd
+res://scripts/nebula_sky.gd
+res://scripts/dust_particles.gd
