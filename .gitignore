@@ -1,0 +1,6 @@
+*.godot/
+.godot/
+*.uid
+*.uid.lines
+*.import
+addons/godot_ai/
