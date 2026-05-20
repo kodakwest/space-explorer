@@ -160,7 +160,7 @@ func _create_catalog_stars() -> void:
 	stars.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(stars)
 
-func _create_star_label(index: int, star: Dictionary, position: Vector3, color: Color) -> void:
+func _create_star_label(_index: int, star: Dictionary, star_pos: Vector3, color: Color) -> void:
 	var label: Label3D = Label3D.new()
 	label.name = "%sLabel" % str(star.get("name", "Star")).replace(" ", "")
 	label.text = "%s\nmag %.1f  %.1f ly" % [
@@ -168,7 +168,7 @@ func _create_star_label(index: int, star: Dictionary, position: Vector3, color: 
 		float(star.get("mag", 0.0)),
 		float(star.get("dist_ly", 0.0))
 	]
-	label.position = position + Vector3(0.0, clampf(_catalog.star_size_from_magnitude(float(star.get("mag", 6.0)), 1.0), 0.8, 3.0), 0.0)
+	label.position = star_pos + Vector3(0.0, clampf(_catalog.star_size_from_magnitude(float(star.get("mag", 6.0)), 1.0), 0.8, 3.0), 0.0)
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.no_depth_test = true
 	label.modulate = _with_alpha(UI_ACCENT, 0.0)
@@ -181,7 +181,7 @@ func _create_star_label(index: int, star: Dictionary, position: Vector3, color: 
 
 	var glow: OmniLight3D = OmniLight3D.new()
 	glow.name = "%sGlow" % label.name.trim_suffix("Label")
-	glow.position = position
+	glow.position = star_pos
 	glow.light_color = color
 	glow.light_energy = 0.18
 	glow.omni_range = 5.0
@@ -242,8 +242,8 @@ func _on_bookmark_count_changed(count: int) -> void:
 func _galaxy_position() -> Vector3:
 	if randf() < 0.22:
 		var core_rad: float = pow(randf(), 2.4) * core_radius
-		var angle: float = randf() * TAU
-		return Vector3(cos(angle) * core_rad, randfn(0.0, disk_thickness * 0.25), sin(angle) * core_rad)
+		var core_angle: float = randf() * TAU
+		return Vector3(cos(core_angle) * core_rad, randfn(0.0, disk_thickness * 0.25), sin(core_angle) * core_rad)
 
 	var spiral_radius: float = lerpf(core_radius * 0.45, field_radius, pow(randf(), 0.72))
 	var arm_index: int = randi() % ARM_COUNT
